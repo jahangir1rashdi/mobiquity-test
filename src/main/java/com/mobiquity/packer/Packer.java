@@ -24,6 +24,12 @@ public class Packer {
     private Packer() {
     }
 
+    /**
+     * Pack function calculates the list of possible items to be added in the package
+     * @param filePath
+     * @return  list of items indexes
+     * @throws APIException
+     */
     public static String pack(String filePath) throws APIException {
         logger.info("packing started");
         final StringBuilder sb = new StringBuilder();

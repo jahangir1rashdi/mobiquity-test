@@ -11,6 +11,12 @@ import static com.mobiquity.util.Constant.*;
 
 public class PackageItemFactory {
 
+    /**
+     *
+     * @param packageDetails
+     * @return list of package items mapped to max weight
+     * @throws APIException with proper validation message
+     */
     public static Map<Double, List<PackageItem>> mapPackageItemsToWeight(
             List<String> packageDetails
     ) throws APIException {
