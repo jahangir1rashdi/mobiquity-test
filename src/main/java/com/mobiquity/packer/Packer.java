@@ -4,11 +4,13 @@ import com.mobiquity.exception.APIException;
 import com.mobiquity.model.PackageItem;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
 import com.mobiquity.model.PackageItemFactory;
+import com.mobiquity.util.PackageValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -65,15 +67,20 @@ public class Packer {
                     return sComp != 0 ? sComp : Double.valueOf(p1.getWeight()).compareTo(p2.getWeight());
                 })
                 .forEach(packageItem -> {
-                    Double currentTotal = finalItems
-                            .stream()
-                            .mapToDouble(PackageItem::getWeight)
-                            .sum();
-                    if (currentTotal + packageItem.getWeight() < maxWeight) {
+                    Double currentTotalWeight = calculateTotalWeight(finalItems);
+                    if (currentTotalWeight + packageItem.getWeight() < maxWeight) {
                         finalItems.add(packageItem);
                     }
                 });
         return finalItems.size() > 0 ? formatPackageItemIndexNumbers(finalItems) : "-";
+    }
+
+    private static Double calculateTotalWeight(List<PackageItem> finalItems) {
+        return finalItems
+                .stream()
+                .parallel()
+                .mapToDouble(PackageItem::getWeight)
+                .sum();
     }
 
     private static String formatPackageItemIndexNumbers(List<PackageItem> finalItems) {

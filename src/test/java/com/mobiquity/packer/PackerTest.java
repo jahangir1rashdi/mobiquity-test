@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.mobiquity.util.Constant.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -19,8 +20,7 @@ class PackerTest {
         Exception exception = assertThrows(APIException.class, ()->{
             Packer.pack("src/test/resources/incorrect_input");
         });
-        String expectedExceptionMessage = "Incorrect data format";
-        assertEquals(expectedExceptionMessage, exception.getMessage());
+        assertEquals(INCORRECT_DATA_FORMAT_EXCEPTION_MESSAGE, exception.getMessage());
     }
 
     @Test
@@ -30,6 +30,30 @@ class PackerTest {
         });
         String expectedExceptionMessage = "File not found";
         assertEquals(expectedExceptionMessage, exception.getMessage());
+    }
+
+    @Test
+    void givenItemCostExceedsThenThrowsException() {
+        Exception exception = assertThrows(APIException.class, ()->{
+            Packer.pack("src/test/resources/input_with_cost_exceed_max_cost");
+        });
+        assertEquals(COST_VALIDATION_EXCEPTION_MESSAGE, exception.getMessage());
+    }
+
+    @Test
+    void givenMaxWeightExceedsThenThrowsException() {
+        Exception exception = assertThrows(APIException.class, ()->{
+            Packer.pack("src/test/resources/input_with_cost_exceed_max_weight");
+        });
+        assertEquals(WEIGHT_VALIDATION_EXCEPTION_MESSAGE, exception.getMessage());
+    }
+
+    @Test
+    void givenItemNumbersExceedsThenThrowsException() {
+        Exception exception = assertThrows(APIException.class, ()->{
+            Packer.pack("src/test/resources/input_with_items_exceed_max_item_numbers");
+        });
+        assertEquals(ITEM_NUMBER_VALIDATION_EXCEPTION_MESSAGE, exception.getMessage());
     }
 
 
