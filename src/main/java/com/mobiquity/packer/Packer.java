@@ -7,8 +7,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+
+import com.mobiquity.model.PackageItemFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,31 +23,34 @@ public class Packer {
     }
 
     public static String pack(String filePath) throws APIException {
+        logger.info("packing started");
         final StringBuilder sb = new StringBuilder();
-        try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
-            logger.info("packing started");
-            stream.forEach(packageDetail -> {
-                String[] details = packageDetail.split(":");
-                double maxWeight = Double.valueOf(details[0].trim());
-                String[] packageItemsStr = details[1].trim().split(" ");
-                List<PackageItem> packageItems = Arrays
-                        .stream(packageItemsStr)
-                        .parallel()
-                        .map(PackageItem::new)
-                        .collect(Collectors.toList());
-                sb.append(getPackageItemIndexNumbers(maxWeight, packageItems));
-                sb.append("\n");
-            });
-            logger.info("packing finished successfully");
+        Stream<String> stream = loadDataStream(filePath);
+        List<String> packageDetails = stream.collect(Collectors.toList());
+        Map<Double, List<PackageItem>> packageItemsToWeight = PackageItemFactory
+                .mapPackageItemsToWeight(packageDetails);
+        for (Map.Entry<Double, List<PackageItem>> packageItemToWeight : packageItemsToWeight.entrySet()) {
+            sb.append(getPackageItemIndexNumbers(
+                    packageItemToWeight.getKey(),
+                    packageItemToWeight.getValue())
+            );
+            sb.append("\n");
+        }
+        logger.info("packing finished successfully");
+
+        return sb.isEmpty() ? "-" : sb.toString().trim();
+    }
+
+    private static Stream<String> loadDataStream(String filePath) throws APIException {
+        Stream<String> stream;
+        try {
+            stream = Files.lines(Paths.get(filePath));
         } catch (IOException e) {
             logger.error("Incorrect file path {}", filePath);
             throw new APIException("File not found", e);
 
-        } catch (NumberFormatException nfe) {
-            logger.error("Incorrect data in file path {}", filePath);
-            throw new APIException("Incorrect data format", nfe);
         }
-        return sb.isEmpty() ? "-" : sb.toString().trim();
+        return stream;
     }
 
     private static String getPackageItemIndexNumbers(

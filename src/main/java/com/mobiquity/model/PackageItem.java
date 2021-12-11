@@ -3,18 +3,14 @@ package com.mobiquity.model;
 import java.math.BigDecimal;
 
 public class PackageItem {
-    public static final int COST_INDEX = 2;
-    public static final int WEIGHT_INDEX = 1;
-    public static final int NUMBER_INDEX = 0;
     private int number;
     private double weight;
     private BigDecimal cost;
 
-    public PackageItem(String packageItem) {
-        String[] fields = packageItem.substring(1, packageItem.length() - 1).split(",");
-        number = Integer.valueOf(fields[NUMBER_INDEX]);
-        weight = Double.valueOf(fields[WEIGHT_INDEX]);
-        cost = new BigDecimal(fields[COST_INDEX].substring(1));
+    public PackageItem(Integer number, Double weight, BigDecimal cost) {
+        this.number = number;
+        this.weight = weight;
+        this.cost = cost;
     }
 
     public int getNumber() {
