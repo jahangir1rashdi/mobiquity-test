@@ -2,6 +2,10 @@ package com.mobiquity.model;
 
 import java.util.List;
 
+/**
+ * Package is the object representation of input file single line
+ * this contains weight and list of items
+ */
 public class Package {
     private Double weight;
     private List<PackageItem> packageItems;

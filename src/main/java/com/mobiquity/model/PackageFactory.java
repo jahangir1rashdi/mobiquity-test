@@ -9,8 +9,16 @@ import java.util.stream.Collectors;
 
 import static com.mobiquity.util.Constant.*;
 
+/**
+ * this factory holds the responsibility to create list of packages
+ */
 public class PackageFactory {
 
+    /**
+     * @param packageDetails creates list of package objects
+     * @return list of Package object
+     * @throws APIException when any constraint violation or invalid data format occurs
+     */
     public static List<Package> getPackages(
             List<String> packageDetails
     ) throws APIException {
@@ -31,7 +39,6 @@ public class PackageFactory {
     }
 
     private static PackageItem createPackageItem(String packageItem) {
-
         String[] fields = packageItem.substring(1, packageItem.length() - 1).split(",");
         Integer number = Integer.valueOf(fields[NUMBER_INDEX]);
         Double weight = Double.valueOf(fields[WEIGHT_INDEX]);

@@ -2,6 +2,9 @@ package com.mobiquity.model;
 
 import java.math.BigDecimal;
 
+/**
+ * package item is representation of item to be added in the package
+ */
 public class PackageItem {
     private int number;
     private double weight;
