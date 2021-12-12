@@ -1,19 +1,17 @@
 package com.mobiquity.packer;
 
 import com.mobiquity.exception.APIException;
+import com.mobiquity.model.Package;
 import com.mobiquity.model.PackageItem;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-
-import com.mobiquity.model.PackageItemFactory;
-import com.mobiquity.util.PackageValidator;
+import com.mobiquity.model.PackageFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,31 +23,24 @@ public class Packer {
     }
 
     /**
-     * Pack function calculates the list of possible items to be added in the package
-     * @param filePath
-     * @return  list of items indexes
-     * @throws APIException
+     * @param filePath file having list of package with item configuration
+     * @return list of item index number to be added in the package
+     * @throws APIException throws validation exceptions
      */
     public static String pack(String filePath) throws APIException {
         logger.info("packing started");
-        final StringBuilder sb = new StringBuilder();
-        Stream<String> stream = loadDataStream(filePath);
-        List<String> packageDetails = stream.collect(Collectors.toList());
-        Map<Double, List<PackageItem>> packageItemsToWeight = PackageItemFactory
-                .mapPackageItemsToWeight(packageDetails);
-        for (Map.Entry<Double, List<PackageItem>> packageItemToWeight : packageItemsToWeight.entrySet()) {
-            sb.append(getPackageItemIndexNumbers(
-                    packageItemToWeight.getKey(),
-                    packageItemToWeight.getValue())
-            );
-            sb.append("\n");
-        }
+        List<String> packageDetails = readInput(filePath);
+        List<Package> packages = PackageFactory
+                .getPackages(packageDetails);
+        String output = packages.stream()
+                .map(Packer::getPackageItemIndexNumbers)
+                .collect(Collectors.joining("\n"));
         logger.info("packing finished successfully");
 
-        return sb.isEmpty() ? "-" : sb.toString().trim();
+        return output.isEmpty() ? "-" : output;
     }
 
-    private static Stream<String> loadDataStream(String filePath) throws APIException {
+    private static List<String> readInput(String filePath) throws APIException {
         Stream<String> stream;
         try {
             stream = Files.lines(Paths.get(filePath));
@@ -58,27 +49,27 @@ public class Packer {
             throw new APIException("File not found", e);
 
         }
-        return stream;
+        return stream.collect(Collectors.toList());
     }
 
     private static String getPackageItemIndexNumbers(
-            double maxWeight,
-            List<PackageItem> packages) {
-        List<PackageItem> finalItems = new ArrayList<>();
-        packages
+            Package pack) {
+        List<PackageItem> selectedItems = new ArrayList<>();
+        pack.getPackageItems()
                 .stream()
-                .filter(x -> x.getWeight() < maxWeight)
+                .filter(x -> x.getWeight() < pack.getWeight())
                 .sorted((p1, p2) -> {
-                    int sComp = p2.getCost().compareTo(p1.getCost());
-                    return sComp != 0 ? sComp : Double.valueOf(p1.getWeight()).compareTo(p2.getWeight());
+                    int costComparator = p2.getCost().compareTo(p1.getCost());
+                    return costComparator != 0 ? costComparator
+                            : Double.compare(p1.getWeight(), p2.getWeight());
                 })
                 .forEach(packageItem -> {
-                    Double currentTotalWeight = calculateTotalWeight(finalItems);
-                    if (currentTotalWeight + packageItem.getWeight() < maxWeight) {
-                        finalItems.add(packageItem);
+                    Double currentTotalWeight = calculateTotalWeight(selectedItems);
+                    if (currentTotalWeight + packageItem.getWeight() < pack.getWeight()) {
+                        selectedItems.add(packageItem);
                     }
                 });
-        return finalItems.size() > 0 ? formatPackageItemIndexNumbers(finalItems) : "-";
+        return selectedItems.size() > 0 ? toOutputFormatString(selectedItems) : "-";
     }
 
     private static Double calculateTotalWeight(List<PackageItem> finalItems) {
@@ -89,14 +80,9 @@ public class Packer {
                 .sum();
     }
 
-    private static String formatPackageItemIndexNumbers(List<PackageItem> finalItems) {
-        return String.join(
-                ",",
-                finalItems.stream()
-                        .map(x -> String
-                                .valueOf(x.getNumber()))
-                        .collect(Collectors.toList())
-        );
+    private static String toOutputFormatString(List<PackageItem> selectedItems) {
+        return selectedItems.stream().map(x -> String
+                .valueOf(x.getNumber())).collect(Collectors.joining(","));
     }
 
 }

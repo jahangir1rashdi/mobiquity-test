@@ -9,31 +9,25 @@ import java.util.stream.Collectors;
 
 import static com.mobiquity.util.Constant.*;
 
-public class PackageItemFactory {
+public class PackageFactory {
 
-    /**
-     *
-     * @param packageDetails
-     * @return list of package items mapped to max weight
-     * @throws APIException with proper validation message
-     */
-    public static Map<Double, List<PackageItem>> mapPackageItemsToWeight(
+    public static List<Package> getPackages(
             List<String> packageDetails
     ) throws APIException {
-        Map<Double, List<PackageItem>> packageItemsToWeight = new LinkedHashMap<>();
+        List<Package> packages = new LinkedList<>();
         PackageValidator.validatePackageDetails(packageDetails);
         for (String packageDetail : packageDetails) {
             String[] details = packageDetail.split(":");
-            double maxWeight = Double.valueOf(details[0].trim());
+            double maxWeight = Double.parseDouble(details[0].trim());
             String[] packageItemsStr = details[1].trim().split(" ");
             List<PackageItem> packageItems = Arrays
                     .stream(packageItemsStr)
                     .parallel()
-                    .map(PackageItemFactory::createPackageItem)
+                    .map(PackageFactory::createPackageItem)
                     .collect(Collectors.toList());
-            packageItemsToWeight.put(maxWeight, packageItems);
+            packages.add(new Package(maxWeight, packageItems));
         }
-        return packageItemsToWeight;
+        return packages;
     }
 
     private static PackageItem createPackageItem(String packageItem) {
